@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>test</name>
+	<name>CWireless</name>
 	<comment></comment>
 	<projects>
-		<project>lpc_board_nxp_lpcxpresso_1769</project>
 		<project>lpc_chip_175x_6x</project>
+		<project>lpc_board_nxp_lpcxpresso_1769</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -22,7 +22,6 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
