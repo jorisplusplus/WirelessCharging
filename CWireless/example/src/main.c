@@ -13,6 +13,7 @@ static uint16_t readADC(void)
 	while (Chip_ADC_ReadStatus(LPC_ADC, ADC_CH0, ADC_DR_DONE_STAT) != SET) {}
 	/* Read ADC value */
 	Chip_ADC_ReadValue(LPC_ADC, ADC_CH0, &dataADC);
+	DEBUGOUT("test %d\n",dataADC);
 	return dataADC;
 }
 
@@ -74,7 +75,7 @@ int main(void)
 	SystemCoreClockUpdate();
 	On = true;
 	Board_LED_Set(0, On);
-
+	DEBUGOUT("test\n");
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
