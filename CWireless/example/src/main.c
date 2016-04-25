@@ -1,35 +1,28 @@
 #include "board.h"
 
-/*****************************************************************************
- * Private types/enumerations/variables
- ****************************************************************************/
-
-/*****************************************************************************
- * Public types/enumerations/variables
- ****************************************************************************/
-
-/*****************************************************************************
- * Private functions
- ****************************************************************************/
-
-#define TIME_INTERVAL   (2000)
+#define TIME_INTERVAL   (500)
 static volatile bool On;
+static ADC_CLOCK_SETUP_T ADCSetup;
 
-/*****************************************************************************
- * Public functions
- ****************************************************************************/
+static uint16_t readADC(void)
+{
+	uint16_t dataADC;
+    Chip_ADC_SetStartMode(LPC_ADC, ADC_START_NOW, ADC_TRIGGERMODE_RISING);
 
-/**
- * @brief	RIT interrupt handler
- * @return	Nothing
- */
+	/* Waiting for A/D conversion complete */
+	while (Chip_ADC_ReadStatus(LPC_ADC, ADC_CH0, ADC_DR_DONE_STAT) != SET) {}
+	/* Read ADC value */
+	Chip_ADC_ReadValue(LPC_ADC, ADC_CH0, &dataADC);
+	return dataADC;
+}
+
 void RIT_IRQHandler(void)
 {
 	/* Clearn interrupt */
 	Chip_RIT_ClearInt(LPC_RITIMER);
 
 	/* Toggle LED */
-	On = (bool) !On;
+	On = (readADC() > 1000);
 	Board_LED_Set(0, On);
 }
 
@@ -66,6 +59,9 @@ void setupClock(void) {
 
 		Chip_SYSCTL_SetFLASHAccess(FLASHTIM_120MHZ_CPU);
 }
+
+/* Polling routine for ADC example */
+
 /**
  * @brief	Main entry point
  * @return	Nothing
@@ -82,9 +78,10 @@ int main(void)
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
-	LPC_IOCON->PINSEL[4] = 0x00000555;
+	LPC_IOCON->PINSEL[4] |= 0x00000555;
+	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
-
+	//LPC_SYSCTL->PCLKSEL[0] |= (2 << 24); //PCLK_ADC = CCLK/2
 
 	Chip_PWM_Init(LPC_PWM1);
 	Chip_PWM_SetMatch(LPC_PWM1, 0, 100000);
@@ -111,6 +108,9 @@ int main(void)
 	Chip_PWM_Reset(LPC_PWM1);
 	Chip_PWM_Enable(LPC_PWM1);
 
+	Chip_ADC_Init(LPC_ADC, &ADCSetup);
+	Chip_ADC_EnableChannel(LPC_ADC, ADC_CH0, ENABLE);
+	Chip_ADC_SetBurstCmd(LPC_ADC, DISABLE);
 
 	/* Configure RIT for a 1s interrupt tick rate */
 	Chip_RIT_SetTimerInterval(LPC_RITIMER, TIME_INTERVAL);
