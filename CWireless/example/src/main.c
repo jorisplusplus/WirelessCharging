@@ -4,16 +4,17 @@
 static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
 
-static uint16_t readADC(void)
+static uint16_t readADC(uint8_t id)
 {
 	uint16_t dataADC;
+	Chip_ADC_EnableChannel(LPC_ADC, id, ENABLE);
     Chip_ADC_SetStartMode(LPC_ADC, ADC_START_NOW, ADC_TRIGGERMODE_RISING);
 
 	/* Waiting for A/D conversion complete */
-	while (Chip_ADC_ReadStatus(LPC_ADC, ADC_CH0, ADC_DR_DONE_STAT) != SET) {}
+	while (Chip_ADC_ReadStatus(LPC_ADC, id, ADC_DR_DONE_STAT) != SET) {}
 	/* Read ADC value */
-	Chip_ADC_ReadValue(LPC_ADC, ADC_CH0, &dataADC);
-	DEBUGOUT("test %d\n",dataADC);
+	Chip_ADC_ReadValue(LPC_ADC, id, &dataADC);
+	Chip_ADC_EnableChannel(LPC_ADC, id, DISABLE);
 	return dataADC;
 }
 
@@ -23,7 +24,10 @@ void RIT_IRQHandler(void)
 	Chip_RIT_ClearInt(LPC_RITIMER);
 
 	/* Toggle LED */
-	On = (readADC() > 1000);
+	DEBUGOUT("Read %d ", readADC(0));
+	DEBUGOUT(" %d", readADC(1));
+	DEBUGOUT(" %d\n", readADC(2));
+	On =!On;
 	Board_LED_Set(0, On);
 }
 
@@ -81,6 +85,8 @@ int main(void)
 
 	LPC_IOCON->PINSEL[4] |= 0x00000555;
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
+	LPC_IOCON->PINSEL[1] |= (1 << 16);
+	LPC_IOCON->PINSEL[1] |= (1 << 18);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
 	//LPC_SYSCTL->PCLKSEL[0] |= (2 << 24); //PCLK_ADC = CCLK/2
 
@@ -110,7 +116,6 @@ int main(void)
 	Chip_PWM_Enable(LPC_PWM1);
 
 	Chip_ADC_Init(LPC_ADC, &ADCSetup);
-	Chip_ADC_EnableChannel(LPC_ADC, ADC_CH0, ENABLE);
 	Chip_ADC_SetBurstCmd(LPC_ADC, DISABLE);
 
 	/* Configure RIT for a 1s interrupt tick rate */

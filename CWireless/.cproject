@@ -29,23 +29,23 @@
 									<listOptionValue builtIn="false" value="__CODE_RED"/>
 									<listOptionValue builtIn="false" value="__USE_LPCOPEN"/>
 									<listOptionValue builtIn="false" value="CORE_M3"/>
-									<listOptionValue builtIn="false" value="__NEWLIB__"/>
+									<listOptionValue builtIn="false" value="__REDLIB__"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.1034528593" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="com.crt.advproject.gcc.hdrlib.462120745" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.newlib" valueType="enumerated"/>
+								<option id="com.crt.advproject.gcc.hdrlib.462120745" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.codered" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1113907912" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_chip_175x_6x/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_board_nxp_lpcxpresso_1769/inc}&quot;"/>
 								</option>
-								<option id="com.crt.advproject.gcc.specs.942678466" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.newlib" valueType="enumerated"/>
+								<option id="com.crt.advproject.gcc.specs.942678466" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.codered" valueType="enumerated"/>
 								<inputType id="com.crt.advproject.compiler.input.1927856687" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
 							<tool id="com.crt.advproject.gas.exe.debug.2077790918" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.debug">
 								<option id="com.crt.advproject.gas.arch.1609464762" name="Architecture" superClass="com.crt.advproject.gas.arch" value="com.crt.advproject.gas.target.cm3" valueType="enumerated"/>
 								<option id="com.crt.advproject.gas.thumb.140975353" name="Thumb mode" superClass="com.crt.advproject.gas.thumb" value="true" valueType="boolean"/>
-								<option id="gnu.both.asm.option.flags.crt.1002330785" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" value="-c -x assembler-with-cpp -DDEBUG -D__CODE_RED -D__NEWLIB__" valueType="string"/>
-								<option id="com.crt.advproject.gas.hdrlib.527594890" name="Library headers" superClass="com.crt.advproject.gas.hdrlib" value="com.crt.advproject.gas.hdrlib.newlib" valueType="enumerated"/>
-								<option id="com.crt.advproject.gas.specs.480651964" name="Specs" superClass="com.crt.advproject.gas.specs" value="com.crt.advproject.gas.specs.newlib" valueType="enumerated"/>
+								<option id="gnu.both.asm.option.flags.crt.1002330785" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" value="-c -x assembler-with-cpp -DDEBUG -D__CODE_RED -D__REDLIB__" valueType="string"/>
+								<option id="com.crt.advproject.gas.hdrlib.527594890" name="Library headers" superClass="com.crt.advproject.gas.hdrlib" value="com.crt.advproject.gas.hdrlib.codered" valueType="enumerated"/>
+								<option id="com.crt.advproject.gas.specs.480651964" name="Specs" superClass="com.crt.advproject.gas.specs" value="com.crt.advproject.gas.specs.codered" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.777608300" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="com.crt.advproject.assembler.input.1684095928" name="Additional Assembly Source Files" superClass="com.crt.advproject.assembler.input"/>
 							</tool>
@@ -60,7 +60,7 @@
 									<listOptionValue builtIn="false" value="-Map=&quot;${BuildArtifactFileBaseName}.map&quot;"/>
 									<listOptionValue builtIn="false" value="--gc-sections"/>
 								</option>
-								<option id="com.crt.advproject.link.gcc.hdrlib.1457549723" name="Library" superClass="com.crt.advproject.link.gcc.hdrlib" value="com.crt.advproject.gcc.link.hdrlib.newlib.semihost" valueType="enumerated"/>
+								<option id="com.crt.advproject.link.gcc.hdrlib.1457549723" name="Library" superClass="com.crt.advproject.link.gcc.hdrlib" value="com.crt.advproject.gcc.link.hdrlib.codered.semihost" valueType="enumerated"/>
 								<option id="gnu.c.link.option.libs.1359763348" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="lpc_board_nxp_lpcxpresso_1769"/>
 									<listOptionValue builtIn="false" value="lpc_chip_175x_6x"/>
@@ -113,23 +113,23 @@
 									<listOptionValue builtIn="false" value="__CODE_RED"/>
 									<listOptionValue builtIn="false" value="__USE_LPCOPEN"/>
 									<listOptionValue builtIn="false" value="CORE_M3"/>
-									<listOptionValue builtIn="false" value="__NEWLIB__"/>
+									<listOptionValue builtIn="false" value="__REDLIB__"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.818225323" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -fno-builtin -ffunction-sections -fdata-sections" valueType="string"/>
-								<option id="com.crt.advproject.gcc.hdrlib.299398849" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.newlib" valueType="enumerated"/>
+								<option id="com.crt.advproject.gcc.hdrlib.299398849" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.codered" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1746052022" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_chip_175x_6x/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_board_nxp_lpcxpresso_1769/inc}&quot;"/>
 								</option>
-								<option id="com.crt.advproject.gcc.specs.771245741" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.newlib" valueType="enumerated"/>
+								<option id="com.crt.advproject.gcc.specs.771245741" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.codered" valueType="enumerated"/>
 								<inputType id="com.crt.advproject.compiler.input.288059986" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
 							<tool id="com.crt.advproject.gas.exe.release.936462419" name="MCU Assembler" superClass="com.crt.advproject.gas.exe.release">
 								<option id="com.crt.advproject.gas.arch.749041135" name="Architecture" superClass="com.crt.advproject.gas.arch" value="com.crt.advproject.gas.target.cm3" valueType="enumerated"/>
 								<option id="com.crt.advproject.gas.thumb.1689607335" name="Thumb mode" superClass="com.crt.advproject.gas.thumb" value="true" valueType="boolean"/>
-								<option id="gnu.both.asm.option.flags.crt.173252938" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" value="-c -x assembler-with-cpp -DNDEBUG -D__CODE_RED -D__NEWLIB__" valueType="string"/>
-								<option id="com.crt.advproject.gas.hdrlib.2110954887" name="Library headers" superClass="com.crt.advproject.gas.hdrlib" value="com.crt.advproject.gas.hdrlib.newlib" valueType="enumerated"/>
-								<option id="com.crt.advproject.gas.specs.48264077" name="Specs" superClass="com.crt.advproject.gas.specs" value="com.crt.advproject.gas.specs.newlib" valueType="enumerated"/>
+								<option id="gnu.both.asm.option.flags.crt.173252938" name="Assembler flags" superClass="gnu.both.asm.option.flags.crt" value="-c -x assembler-with-cpp -DNDEBUG -D__CODE_RED -D__REDLIB__" valueType="string"/>
+								<option id="com.crt.advproject.gas.hdrlib.2110954887" name="Library headers" superClass="com.crt.advproject.gas.hdrlib" value="com.crt.advproject.gas.hdrlib.codered" valueType="enumerated"/>
+								<option id="com.crt.advproject.gas.specs.48264077" name="Specs" superClass="com.crt.advproject.gas.specs" value="com.crt.advproject.gas.specs.codered" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1361554425" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="com.crt.advproject.assembler.input.159070842" name="Additional Assembly Source Files" superClass="com.crt.advproject.assembler.input"/>
 							</tool>
@@ -144,7 +144,7 @@
 									<listOptionValue builtIn="false" value="-Map=&quot;${BuildArtifactFileBaseName}.map&quot;"/>
 									<listOptionValue builtIn="false" value="--gc-sections"/>
 								</option>
-								<option id="com.crt.advproject.link.gcc.hdrlib.900002006" name="Library" superClass="com.crt.advproject.link.gcc.hdrlib" value="com.crt.advproject.gcc.link.hdrlib.newlib.semihost" valueType="enumerated"/>
+								<option id="com.crt.advproject.link.gcc.hdrlib.900002006" name="Library" superClass="com.crt.advproject.link.gcc.hdrlib" value="com.crt.advproject.gcc.link.hdrlib.codered.semihost" valueType="enumerated"/>
 								<option id="gnu.c.link.option.libs.1860325972" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="lpc_board_nxp_lpcxpresso_1769"/>
 									<listOptionValue builtIn="false" value="lpc_chip_175x_6x"/>
