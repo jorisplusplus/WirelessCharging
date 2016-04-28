@@ -122,11 +122,8 @@ int main(void)
 	Chip_RIT_SetTimerInterval(LPC_RITIMER, TIME_INTERVAL);
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
-
-
-
-
 	/* LED is toggled in interrupt handler */
+
 	while (1) {}
 }
 
