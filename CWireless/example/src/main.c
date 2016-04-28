@@ -113,7 +113,7 @@ int main(void)
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
-	LPC_IOCON->PINSEL[4] |= 0x00000555;
+	LPC_IOCON->PINSEL[4] |= 0x00000555; //Change this after you know which pwm outputs are needed.
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
