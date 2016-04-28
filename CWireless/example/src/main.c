@@ -1,6 +1,9 @@
 #include "board.h"
 
 #define TIME_INTERVAL   (500)
+#define VIN_PIN 0
+#define VOUT_PIN 1
+
 static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
 
@@ -88,7 +91,6 @@ int main(void)
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
-	//LPC_SYSCTL->PCLKSEL[0] |= (2 << 24); //PCLK_ADC = CCLK/2
 
 	Chip_PWM_Init(LPC_PWM1);
 	Chip_PWM_SetMatch(LPC_PWM1, 0, 100000);
