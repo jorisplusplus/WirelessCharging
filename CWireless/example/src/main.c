@@ -3,9 +3,13 @@
 #define TIME_INTERVAL   (500)
 #define VIN_PIN 0
 #define VOUT_PIN 1
+#define intFactor 0.05
 
 static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
+static volatile bool enabledOut;
+static volatile uint16_t vout;
+static uint32_t dutyInt;
 
 static uint16_t readADC(uint8_t id)
 {
@@ -19,6 +23,29 @@ static uint16_t readADC(uint8_t id)
 	Chip_ADC_ReadValue(LPC_ADC, id, &dataADC);
 	Chip_ADC_EnableChannel(LPC_ADC, id, DISABLE);
 	return dataADC;
+}
+
+void DCDCControl(void) {
+	if(!enableOut) {
+		//Set output low when the output should be disabled.
+		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
+		Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
+		return;
+	}
+	uint16_t vin = readADC(VIN_PIN);
+	uint16_t currentOut = readADC(VOUT_PIN);
+	if(vin > vout) {							//BUCK
+		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
+		//D = Vd/Vo
+		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
+
+	} else {									//B
+		Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
+		//D = (Vo-Vd)/Vo
+		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
+
+	}
+
 }
 
 void RIT_IRQHandler(void)
