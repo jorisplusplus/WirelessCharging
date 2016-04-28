@@ -121,8 +121,8 @@ int main(void)
 
 	Chip_PWM_Init(LPC_PWM1);
 	Chip_PWM_SetMatch(LPC_PWM1, 0, 100000);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 50000);
-	Chip_PWM_SetMatch(LPC_PWM1, 2, 25000);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
+	Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
 
 	Chip_PWM_ResetOnMatchEnable(LPC_PWM1, 0);
 	Chip_PWM_SetCountClockSrc(LPC_PWM1, PWM_CAPSRC_RISING_PCLK, 0);
