@@ -12,7 +12,7 @@
  * Private functions
  ****************************************************************************/
 
-#define TIME_INTERVAL   (2000)
+#define TIME_INTERVAL   (100)
 static volatile bool On;
 
 /*****************************************************************************
@@ -78,7 +78,7 @@ int main(void)
 	SystemCoreClockUpdate();
 	On = true;
 	Board_LED_Set(0, On);
-
+	DEBUGINIT();
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
@@ -121,7 +121,10 @@ int main(void)
 
 
 	/* LED is toggled in interrupt handler */
-	while (1) {}
+	while (1) {
+		int p = DEBUGIN();
+			DEBUGOUT("%d\n",p);
+	}
 }
 
 /**
