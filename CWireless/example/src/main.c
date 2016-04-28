@@ -39,7 +39,7 @@ void DCDCControl(void) {
 		//D = Vd/Vo
 		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
 
-	} else {									//B
+	} else {									//BOOST
 		Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
 		//D = (Vo-Vd)/Vo
 		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
