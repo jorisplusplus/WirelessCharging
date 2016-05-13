@@ -1,15 +1,18 @@
 #include "board.h"
 
-#define TIME_INTERVAL   (500)
+#define TIME_INTERVAL   (1)
 #define VIN_PIN 0
 #define VOUT_PIN 1
 #define intFactor 0.05
 
+
 static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
-static volatile bool enabledOut;
+static volatile bool enableOut;
 static volatile uint16_t vout;
-static uint32_t dutyInt;
+static volatile uint16_t time;
+static int32_t dutyInt;
+static volatile bool controlFlag;
 
 static uint16_t readADC(uint8_t id)
 {
@@ -29,36 +32,40 @@ void DCDCControl(void) {
 	if(!enableOut) {
 		//Set output low when the output should be disabled.
 		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
-		Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
+		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 		return;
 	}
 	uint16_t vin = readADC(VIN_PIN);
 	uint16_t currentOut = readADC(VOUT_PIN);
-	if(vin > vout) {							//BUCK
-		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
-		//D = Vd/Vo
-		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
 
-	} else {									//BOOST
-		Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
-		//D = (Vo-Vd)/Vo
-		dutyInt += (currentOut-vout)*intFactor; //Integration of the error
-
-	}
-
+	dutyInt += (currentOut-vout)*intFactor; //Integration of the error
+	if(dutyInt > 50) dutyInt = 50; //Limit integration
+	if(dutyInt < -50) dutyInt = -50; //Limit integration
+	int16_t D = (currentOut-vin)/(currentOut+1)*600 + dutyInt;
+	if(D > 600) D = 600; //Limit duty cycle
+	if(D < 100) D = 100; //Minimal duty cycle
+	Chip_PWM_SetMatch(LPC_PWM1, 1, D);
+	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 }
 
 void RIT_IRQHandler(void)
 {
 	/* Clearn interrupt */
 	Chip_RIT_ClearInt(LPC_RITIMER);
-
+	controlFlag = true;
 	/* Toggle LED */
-	DEBUGOUT("Read %d ", readADC(0));
-	DEBUGOUT(" %d", readADC(1));
-	DEBUGOUT(" %d\n", readADC(2));
-	On =!On;
-	Board_LED_Set(0, On);
+	//DEBUGOUT("Read %d ", readADC(0));
+	//DEBUGOUT(" %d", readADC(1));
+	//DEBUGOUT(" %d\n", readADC(2));
+
+	//Board_LED_Set(0, On);
+}
+
+void MCPWM_IRQHandler(void) {
+	LPC_MCPWM->INTF_CLR |= 1;
+	time++;
+	if(time > 54) time = 0;
+	LPC_MCPWM->MAT[0] = time;
 }
 
 void setupClock(void) {
@@ -103,26 +110,34 @@ void setupClock(void) {
  */
 int main(void)
 {
+	controlFlag = false;
 	SystemCoreClockUpdate();
 	Board_Init();
 	setupClock();
 	SystemCoreClockUpdate();
 	On = true;
+	enableOut = false;
 	Board_LED_Set(0, On);
-	DEBUGOUT("test\n");
+	DEBUGOUT("Starting\n");
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
 	LPC_IOCON->PINSEL[4] |= 0x00000555; //Change this after you know which pwm outputs are needed.
+	LPC_IOCON->PINSEL[3] |= (1 << 6);
+	LPC_IOCON->PINSEL[3] |= (1 << 12);
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
 
+	LPC_SYSCTL->PCONP |= (1 << 17); //Enable clock
+	LPC_SYSCTL->PCLKSEL[1] |= (1 << 30); //PCLKMPWM = CCLK
+
 	Chip_PWM_Init(LPC_PWM1);
-	Chip_PWM_SetMatch(LPC_PWM1, 0, 100000);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
-	Chip_PWM_SetMatch(LPC_PWM1, 2, 0);
+	LPC_PWM1->PR = 0;
+	Chip_PWM_SetMatch(LPC_PWM1, 0, 10);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 5);
+	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
 
 	Chip_PWM_ResetOnMatchEnable(LPC_PWM1, 0);
 	Chip_PWM_SetCountClockSrc(LPC_PWM1, PWM_CAPSRC_RISING_PCLK, 0);
@@ -131,9 +146,24 @@ int main(void)
 
 	Chip_PWM_LatchEnable(LPC_PWM1, 0, PWM_OUT_ENABLED);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
+	Chip_PWM_LatchEnable(LPC_PWM1, 2, PWM_OUT_ENABLED);
 
-	Chip_PWM_Reset(LPC_PWM1);
 	Chip_PWM_Enable(LPC_PWM1);
+	Chip_PWM_Reset(LPC_PWM1);
+
+	LPC_MCPWM->CON_SET |= (1 <<3);
+	LPC_MCPWM->LIM[0] = 60;
+	LPC_MCPWM->MAT[0] = 24;
+	LPC_MCPWM->DT = 3;
+	LPC_MCPWM->INTEN_SET |= 1;
+	LPC_MCPWM->INTF_SET |= 1;
+
+	NVIC_EnableIRQ(RITIMER_IRQn);
+	NVIC_EnableIRQ(MCPWM_IRQn);
+
+	LPC_MCPWM->CON_SET |= 1;
+
+
 
 	Chip_ADC_Init(LPC_ADC, &ADCSetup);
 	Chip_ADC_SetBurstCmd(LPC_ADC, DISABLE);
@@ -141,10 +171,16 @@ int main(void)
 	/* Configure RIT for a 1s interrupt tick rate */
 	Chip_RIT_SetTimerInterval(LPC_RITIMER, TIME_INTERVAL);
 
-	NVIC_EnableIRQ(RITIMER_IRQn);
-	/* LED is toggled in interrupt handler */
 
-	while (1) {}
+	/* LED is toggled in interrupt handler */
+	enableOut = true;
+	vout = 300;
+	while (1) {
+		if(controlFlag) {
+			//DCDCControl();
+			controlFlag = false;
+		}
+	}
 }
 
 /**
