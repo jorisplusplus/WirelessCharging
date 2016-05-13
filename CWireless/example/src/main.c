@@ -41,17 +41,20 @@ void DCDCControl(void) {
 	dutyInt += (currentOut-vout)*intFactor; //Integration of the error
 	if(dutyInt > 50) dutyInt = 50; //Limit integration
 	if(dutyInt < -50) dutyInt = -50; //Limit integration
-	int16_t D = (currentOut-vin)/(currentOut+1)*600 + dutyInt;
-	if(D > 600) D = 600; //Limit duty cycle
-	if(D < 100) D = 100; //Minimal duty cycle
+	int32_t D = (vout-vin)*6000/(vout) + dutyInt;
+	if(D > 5500) D = 5500; //Limit duty cycle
+	if(D < 0) D = 0; //Minimal duty cycle
 	Chip_PWM_SetMatch(LPC_PWM1, 1, D);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
+	//DEBUGOUT("%d %d %d\n", D, vin, currentOut);
 }
 
 void RIT_IRQHandler(void)
 {
 	/* Clearn interrupt */
 	Chip_RIT_ClearInt(LPC_RITIMER);
+	if(controlFlag)
+		DEBUGOUT("Overloaded\n");
 	controlFlag = true;
 	/* Toggle LED */
 	//DEBUGOUT("Read %d ", readADC(0));
@@ -63,9 +66,9 @@ void RIT_IRQHandler(void)
 
 void MCPWM_IRQHandler(void) {
 	LPC_MCPWM->INTF_CLR |= 1;
-	time++;
-	if(time > 54) time = 0;
-	LPC_MCPWM->MAT[0] = time;
+	//time++;
+	//if(time > 54) time = 0;
+	//LPC_MCPWM->MAT[0] = time;
 }
 
 void setupClock(void) {
@@ -135,8 +138,8 @@ int main(void)
 
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
-	Chip_PWM_SetMatch(LPC_PWM1, 0, 10);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 5);
+	Chip_PWM_SetMatch(LPC_PWM1, 0, 6000);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 3000);
 	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
 
 	Chip_PWM_ResetOnMatchEnable(LPC_PWM1, 0);
@@ -152,9 +155,9 @@ int main(void)
 	Chip_PWM_Reset(LPC_PWM1);
 
 	LPC_MCPWM->CON_SET |= (1 <<3);
-	LPC_MCPWM->LIM[0] = 60;
-	LPC_MCPWM->MAT[0] = 24;
-	LPC_MCPWM->DT = 3;
+	LPC_MCPWM->LIM[0] = 600;
+	LPC_MCPWM->MAT[0] = 288;
+	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
 
@@ -174,10 +177,10 @@ int main(void)
 
 	/* LED is toggled in interrupt handler */
 	enableOut = true;
-	vout = 300;
+	vout = 2000;
 	while (1) {
 		if(controlFlag) {
-			//DCDCControl();
+			DCDCControl();
 			controlFlag = false;
 		}
 	}
