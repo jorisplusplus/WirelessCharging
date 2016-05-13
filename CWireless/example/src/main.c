@@ -87,9 +87,9 @@ int main(void)
 
 
 	Chip_PWM_Init(LPC_PWM1);
-	Chip_PWM_SetMatch(LPC_PWM1, 0, 100000);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 50000);
-	Chip_PWM_SetMatch(LPC_PWM1, 2, 25000);
+	Chip_PWM_SetMatch(LPC_PWM1, 0, 6000);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 500);
+	Chip_PWM_SetMatch(LPC_PWM1, 2, 250);
 	Chip_PWM_SetMatch(LPC_PWM1, 3, 10000);
 	Chip_PWM_SetMatch(LPC_PWM1, 4, 5000);
 	Chip_PWM_SetMatch(LPC_PWM1, 5, 2500);
