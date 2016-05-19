@@ -66,7 +66,6 @@ void DCDCControl(void) {
 	if(D < 0) D = 0; //Minimal duty cycle
 	Chip_PWM_SetMatch(LPC_PWM1, 1, D);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
-	//DEBUGOUT("%d %d %d\n", D, vin, currentOut);
 }
 
 void MPPT(void) { //PUT MPPT here
