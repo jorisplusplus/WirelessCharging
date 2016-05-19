@@ -3,16 +3,23 @@
 #define TIME_INTERVAL   (1)
 #define VIN_PIN 0
 #define VOUT_PIN 1
-#define intFactor 0.05
+#define CURRENT_PIN 2
+#define LOAD_PIN 3
+#define intFactor 1
+
+#define enableMPPT
+#define enableLoad
 
 
 static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
 static volatile bool enableOut;
+static volatile bool enablePrev;
 static volatile uint16_t vout;
 static volatile uint16_t time;
 static int32_t dutyInt;
 static volatile bool controlFlag;
+static volatile uint16_t times;
 
 static uint16_t readADC(uint8_t id)
 {
@@ -28,12 +35,25 @@ static uint16_t readADC(uint8_t id)
 	return dataADC;
 }
 
+void DCACControl(void) {
+	if(enableOut < enablePrev) {
+		LPC_IOCON->PINSEL[3] = LPC_IOCON->PINSEL[3] && !(1 << 6);
+		LPC_IOCON->PINSEL[3] = LPC_IOCON->PINSEL[3] && !(1 << 12);
+	} else if(enableOut > enablePrev){
+		LPC_IOCON->PINSEL[3] |= (1 << 6);
+		LPC_IOCON->PINSEL[3] |= (1 << 12);
+	}
+}
+
 void DCDCControl(void) {
-	if(!enableOut) {
+	if(enableOut < enablePrev) {
 		//Set output low when the output should be disabled.
 		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
 		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 		return;
+	} else if(enableOut > enablePrev){
+		Chip_PWM_SetMatch(LPC_PWM1, 1, 6000);
+		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 	}
 	uint16_t vin = readADC(VIN_PIN);
 	uint16_t currentOut = readADC(VOUT_PIN);
@@ -49,26 +69,27 @@ void DCDCControl(void) {
 	//DEBUGOUT("%d %d %d\n", D, vin, currentOut);
 }
 
-void RIT_IRQHandler(void)
-{
+void MPPT(void) { //PUT MPPT here
+
+}
+
+void DCACSetFreq(uint16_t freq) {
+	if(freq < 600) {
+		freq = 600;
+	}
+	if(freq > 1800) {
+		freq = 1800;
+	}
+	LPC_MCPWM->LIM[0] = freq;
+	LPC_MCPWM->MAT[0] = (freq>>1)-12;
+}
+
+void RIT_IRQHandler(void) {
 	/* Clearn interrupt */
 	Chip_RIT_ClearInt(LPC_RITIMER);
 	if(controlFlag)
 		DEBUGOUT("Overloaded\n");
 	controlFlag = true;
-	/* Toggle LED */
-	//DEBUGOUT("Read %d ", readADC(0));
-	//DEBUGOUT(" %d", readADC(1));
-	//DEBUGOUT(" %d\n", readADC(2));
-
-	//Board_LED_Set(0, On);
-}
-
-void MCPWM_IRQHandler(void) {
-	LPC_MCPWM->INTF_CLR |= 1;
-	//time++;
-	//if(time > 54) time = 0;
-	//LPC_MCPWM->MAT[0] = time;
 }
 
 void setupClock(void) {
@@ -111,8 +132,7 @@ void setupClock(void) {
  * @brief	Main entry point
  * @return	Nothing
  */
-int main(void)
-{
+int main(void) {
 	controlFlag = false;
 	SystemCoreClockUpdate();
 	Board_Init();
@@ -126,8 +146,10 @@ int main(void)
 	Chip_RIT_Init(LPC_RITIMER);
 
 	LPC_IOCON->PINSEL[4] |= 0x00000555; //Change this after you know which pwm outputs are needed.
-	LPC_IOCON->PINSEL[3] |= (1 << 6);
-	LPC_IOCON->PINSEL[3] |= (1 << 12);
+	//LPC_IOCON->PINSEL[3] |= (1 << 6);
+	//LPC_IOCON->PINSEL[3] |= (1 << 12);
+	LPC_IOCON->PINMODE[3] |= (3 << 6);
+	LPC_IOCON->PINMODE[3] |= (3 << 12);
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
@@ -139,7 +161,7 @@ int main(void)
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
 	Chip_PWM_SetMatch(LPC_PWM1, 0, 6000);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 3000);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
 	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
 
 	Chip_PWM_ResetOnMatchEnable(LPC_PWM1, 0);
@@ -155,14 +177,13 @@ int main(void)
 	Chip_PWM_Reset(LPC_PWM1);
 
 	LPC_MCPWM->CON_SET |= (1 <<3);
-	LPC_MCPWM->LIM[0] = 600;
-	LPC_MCPWM->MAT[0] = 288;
+	DCACSetFreq(1200);
 	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
-	NVIC_EnableIRQ(MCPWM_IRQn);
+	//NVIC_EnableIRQ(MCPWM_IRQn);
 
 	LPC_MCPWM->CON_SET |= 1;
 
@@ -176,11 +197,26 @@ int main(void)
 
 
 	/* LED is toggled in interrupt handler */
-	enableOut = true;
+	enableOut = false;
+	enablePrev = false;
 	vout = 2000;
 	while (1) {
 		if(controlFlag) {
+			#ifndef enableLoad
+				enableOut = (readADC(LOAD_PIN) > 2000);
+			#else
+				enableOut = true;
+			#endif
+			DCACControl();
 			DCDCControl();
+			times++;
+			if(times > 99) {
+				times = 0;
+				#ifndef enableMPPT
+					MPPT();
+				#endif
+			}
+			enablePrev = enableOut;
 			controlFlag = false;
 		}
 	}
