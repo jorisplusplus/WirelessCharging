@@ -117,7 +117,7 @@ void setupClock(void) {
 
 		Chip_Clock_EnablePLL(SYSCTL_MAIN_PLL, SYSCTL_PLL_ENABLE);
 
-		/* 432MHz / (3+1) = 120MHz */
+		/* 480MHz / (3+1) = 120MHz */
 		Chip_Clock_SetCPUClockDiv(3);
 		while (!Chip_Clock_IsMainPLLLocked()) {} /* Wait for the PLL to Lock */
 
@@ -133,21 +133,21 @@ void setupClock(void) {
  * @return	Nothing
  */
 int main(void) {
-	controlFlag = false;
 	SystemCoreClockUpdate();
 	Board_Init();
 	setupClock();
 	SystemCoreClockUpdate();
+
 	On = true;
 	enableOut = false;
+	controlFlat = false;
+
 	Board_LED_Set(0, On);
 	DEBUGOUT("Starting\n");
 	/* Initialize RITimer */
 	Chip_RIT_Init(LPC_RITIMER);
 
 	LPC_IOCON->PINSEL[4] |= 0x00000555; //Change this after you know which pwm outputs are needed.
-	//LPC_IOCON->PINSEL[3] |= (1 << 6);
-	//LPC_IOCON->PINSEL[3] |= (1 << 12);
 	LPC_IOCON->PINMODE[3] |= (3 << 6);
 	LPC_IOCON->PINMODE[3] |= (3 << 12);
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
@@ -183,8 +183,6 @@ int main(void) {
 	LPC_MCPWM->INTF_SET |= 1;
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
-	//NVIC_EnableIRQ(MCPWM_IRQn);
-
 	LPC_MCPWM->CON_SET |= 1;
 
 
@@ -197,8 +195,6 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	enableOut = false;
-	enablePrev = false;
 	vout = 2000;
 	while (1) {
 		if(controlFlag) {
