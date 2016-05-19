@@ -153,6 +153,7 @@ int main(void) {
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
+	LPC_IOCON->PINSEL[1] |= (1 << 20);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
 
 	LPC_SYSCTL->PCONP |= (1 << 17); //Enable clock
