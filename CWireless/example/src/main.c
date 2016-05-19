@@ -140,7 +140,7 @@ int main(void) {
 
 	On = true;
 	enableOut = false;
-	controlFlat = false;
+	controlFlag = false;
 
 	Board_LED_Set(0, On);
 	DEBUGOUT("Starting\n");
