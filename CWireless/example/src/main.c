@@ -52,13 +52,13 @@ void DCDCControl(void) {
 		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 		return;
 	} else if(enableOut > enablePrev){
-		Chip_PWM_SetMatch(LPC_PWM1, 1, 6000);
-		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
+		//Chip_PWM_SetMatch(LPC_PWM1, 1, 6000);
+		//Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 	}
 	uint16_t vin = readADC(VIN_PIN);
 	uint16_t currentOut = readADC(VOUT_PIN);
 
-	dutyInt += (currentOut-vout)*intFactor; //Integration of the error
+	dutyInt += (currentOut-vout)/intFactor; //Integration of the error
 	if(dutyInt > 50) dutyInt = 50; //Limit integration
 	if(dutyInt < -50) dutyInt = -50; //Limit integration
 	int32_t D = (vout-vin)*6000/(vout) + dutyInt;
