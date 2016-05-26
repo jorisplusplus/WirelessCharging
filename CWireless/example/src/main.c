@@ -21,6 +21,9 @@ static volatile uint16_t freq;
 static int32_t dutyInt;
 static volatile bool controlFlag;
 static volatile uint16_t times;
+static int32_t Vmeasure;
+static int32_t Vold;
+static int32_t Imeasure;
 
 static uint16_t readADC(uint8_t id)
 {
