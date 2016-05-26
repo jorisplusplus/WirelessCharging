@@ -6,6 +6,8 @@
 #define CURRENT_PIN 2
 #define LOAD_PIN 3
 #define intFactor 1
+#define MPPTFactor 10
+#define VMAX 2000
 
 #define enableMPPT
 #define enableLoad
@@ -15,7 +17,7 @@ static volatile bool On;
 static ADC_CLOCK_SETUP_T ADCSetup;
 static volatile bool enableOut;
 static volatile bool enablePrev;
-static volatile uint16_t vout;
+static volatile int32_t vout;
 static volatile uint16_t time;
 static volatile uint16_t freq;
 static int32_t dutyInt;
@@ -24,6 +26,7 @@ static volatile uint16_t times;
 static int32_t Vmeasure;
 static int32_t Vold;
 static int32_t Imeasure;
+static int16_t voutOld;
 
 static uint16_t readADC(uint8_t id)
 {
@@ -85,11 +88,30 @@ void DCACSetFreq(uint16_t freq) {
 }
 
 void MPPT(void) { //PUT MPPT here
-	DCACSetFreq(freq);
-	freq = freq -10;
-	if(freq < 500) {
-		freq = 1200;
+	Vold = Vmeasure;
+	Vmeasure = readADC(VIN_PIN);
+	Imeasure = readADC(CURRENT_PIN);
+	int32_t P = (Vmeasure-Vold)*Imeasure;
+	if(P > 0) { //Power has increased;
+		if(voutOld > vout) { //Decreased the voltage
+			vout = vout - MPPTFactor;
+		} else { //Increased the voltage
+			vout = vout + MPPTFactor;
+		}
+	} else {	//Power decreased
+		if(voutOld > vout) { //Decreased the voltage
+			vout = vout + MPPTFactor;
+		} else { //Increased the voltage
+			vout = vout - MPPTFactor;
+		}
 	}
+	if(vout > VMAX) {
+		vout = VMAX;
+	}
+	if(vout < 0) {
+		vout = 0;
+	}
+	voutOld = vout;
 }
 
 
