@@ -17,6 +17,7 @@ static volatile bool enableOut;
 static volatile bool enablePrev;
 static volatile uint16_t vout;
 static volatile uint16_t time;
+static volatile uint16_t freq;
 static int32_t dutyInt;
 static volatile bool controlFlag;
 static volatile uint16_t times;
@@ -68,13 +69,10 @@ void DCDCControl(void) {
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 }
 
-void MPPT(void) { //PUT MPPT here
-
-}
 
 void DCACSetFreq(uint16_t freq) {
-	if(freq < 600) {
-		freq = 600;
+	if(freq < 400) {
+		freq = 400;
 	}
 	if(freq > 1800) {
 		freq = 1800;
@@ -82,6 +80,15 @@ void DCACSetFreq(uint16_t freq) {
 	LPC_MCPWM->LIM[0] = freq;
 	LPC_MCPWM->MAT[0] = (freq>>1)-12;
 }
+
+void MPPT(void) { //PUT MPPT here
+	DCACSetFreq(freq);
+	freq = freq -10;
+	if(freq < 500) {
+		freq = 1200;
+	}
+}
+
 
 void RIT_IRQHandler(void) {
 	/* Clearn interrupt */
@@ -177,11 +184,11 @@ int main(void) {
 	Chip_PWM_Reset(LPC_PWM1);
 
 	LPC_MCPWM->CON_SET |= (1 <<3);
-	DCACSetFreq(1200);
+	DCACSetFreq(600);
 	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
-
+	freq = 800;
 	NVIC_EnableIRQ(RITIMER_IRQn);
 	LPC_MCPWM->CON_SET |= 1;
 
@@ -199,18 +206,18 @@ int main(void) {
 	while (1) {
 		if(controlFlag) {
 			#ifndef enableLoad
-				enableOut = (readADC(LOAD_PIN) > 2000);
+				enableOut = (readADC(LOAD_PIN) > 2000);1200
 			#else
 				enableOut = true;
 			#endif
 			DCACControl();
 			DCDCControl();
 			times++;
-			if(times > 99) {
+			if(times > 200) {
 				times = 0;
-				#ifndef enableMPPT
+				//#ifndef enableMPPT
 					MPPT();
-				#endif
+				//#endif
 			}
 			enablePrev = enableOut;
 			controlFlag = false;
