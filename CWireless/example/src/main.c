@@ -240,9 +240,9 @@ int main(void) {
 			times++;
 			if(times > 200) {
 				times = 0;
-				//#ifndef enableMPPT
+				#ifdef enableMPPT
 					MPPT();
-				//#endif
+				#endif
 			}
 			enablePrev = enableOut;
 			controlFlag = false;
