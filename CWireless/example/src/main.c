@@ -23,7 +23,6 @@ static volatile uint16_t freq;
 static volatile bool controlFlag;
 static volatile uint16_t times;
 static int32_t Vmeasure;
-static int32_t Vold;
 static int32_t Imeasure;
 static int16_t voutOld;
 
@@ -71,10 +70,11 @@ void DCACSetFreq(uint16_t freq) {
 }
 
 void MPPT(void) { //PUT MPPT here
-	Vold = Vmeasure;
+	int32_t Vold = Vmeasure;
+	int32_t Iold = Imeasure;
 	Vmeasure = readADC(VIN_PIN);
 	Imeasure = readADC(CURRENT_PIN);
-	int32_t P = (Vmeasure-Vold)*Imeasure;
+	int32_t P = Vmeasure*Imeasure - Vold*Iold;
 	if(P > 0) { //Power has increased;
 		if(voutOld > vout) { //Decreased the voltage
 			vout = vout - MPPTFactor;
