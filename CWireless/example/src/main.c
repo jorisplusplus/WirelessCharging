@@ -53,25 +53,9 @@ void DCACControl(void) {
 }
 
 void DCDCControl(void) {
-	if(enableOut < enablePrev) {
-		//Set output low when the output should be disabled.
-		Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
-		Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
-		return;
-	} else if(enableOut > enablePrev){
-		//Chip_PWM_SetMatch(LPC_PWM1, 1, 6000);
-		//Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
-	}
-	uint16_t vin = readADC(VIN_PIN);
-	uint16_t currentOut = readADC(VOUT_PIN);
-
-	dutyInt += (currentOut-vout)/intFactor; //Integration of the error
-	if(dutyInt > 50) dutyInt = 50; //Limit integration
-	if(dutyInt < -50) dutyInt = -50; //Limit integration
-	int32_t D = (vout-vin)*6000/(vout) + dutyInt;
-	if(D > 5500) D = 5500; //Limit duty cycle
-	if(D < 0) D = 0; //Minimal duty cycle
-	Chip_PWM_SetMatch(LPC_PWM1, 1, D);
+	if(vout > 4800) vout = 4800; //Limit duty cycle
+	if(vout < 0) vout = 0; //Minimal duty cycle
+	Chip_PWM_SetMatch(LPC_PWM1, 1, vout);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 }
 
@@ -227,11 +211,11 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	vout = 2000;
+	vout = 0;
 	while (1) {
 		if(controlFlag) {
 			#ifndef enableLoad
-				enableOut = (readADC(LOAD_PIN) > 2000);1200
+				enableOut = (readADC(LOAD_PIN) > 2000);
 			#else
 				enableOut = true;
 			#endif
