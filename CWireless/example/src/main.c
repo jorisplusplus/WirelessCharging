@@ -8,9 +8,13 @@
 #define intFactor 1
 #define MPPTFactor 10
 #define VMAX 4800
+#define FMAX 1800
+#define FMIN 400
+#define ncycles 1000
 
 #define enableMPPT
 #define enableLoad
+#define enableFreq
 
 
 static volatile bool On;
@@ -20,11 +24,13 @@ static volatile bool enablePrev;
 static volatile int32_t vout;
 static volatile uint16_t time;
 static volatile uint16_t freq;
+static volatile uint16_t freqOld;
 static volatile bool controlFlag;
 static volatile uint16_t times;
 static int32_t Vmeasure;
 static int32_t Imeasure;
 static int16_t voutOld;
+static uint16_t cycles;
 
 static uint16_t readADC(uint8_t id)
 {
@@ -59,11 +65,11 @@ void DCDCControl(void) {
 
 
 void DCACSetFreq(uint16_t freq) {
-	if(freq < 400) {
-		freq = 400;
+	if(freq < FMIN) {
+		freq = FMIN;
 	}
-	if(freq > 1800) {
-		freq = 1800;
+	if(freq > FMAX) {
+		freq = FMAX;
 	}
 	LPC_MCPWM->LIM[0] = freq;
 	LPC_MCPWM->MAT[0] = (freq>>1)-12;
@@ -75,7 +81,7 @@ void MPPT(void) { //PUT MPPT here
 	Vmeasure = readADC(VIN_PIN);
 	Imeasure = readADC(CURRENT_PIN);
 	int32_t P = Vmeasure*Imeasure - Vold*Iold;
-	if(P > 0) { //Power has increased;
+	if(P >= 0) { //Power has increased;
 		if(voutOld > vout) { //Decreased the voltage
 			vout = vout - MPPTFactor;
 		} else { //Increased the voltage
@@ -95,6 +101,35 @@ void MPPT(void) { //PUT MPPT here
 		vout = 0;
 	}
 	voutOld = vout;
+}
+
+void MPPTFreq(void) { //PUT MPPT here
+	int32_t Vold = Vmeasure;
+	int32_t Iold = Imeasure;
+	Vmeasure = readADC(VIN_PIN);
+	Imeasure = readADC(CURRENT_PIN);
+	int32_t P = Vmeasure*Imeasure - Vold*Iold;
+	if(P >= 0) { //Power has increased;
+		if(freqOld > freq) { //Decreased the voltage
+			freq = freq - 1;
+		} else { //Increased the voltage
+			freq = freq + 1;
+		}
+	} else {	//Power decreased
+		if(freqOld > freq) { //Decreased the voltage
+			freq = freq + 1;
+		} else { //Increased the voltage
+			freq = freq - 1;
+		}
+	}
+	if(freq > FMAX) {
+		freq = FMAX;
+	}
+	if(freq < FMIN) {
+		freq = FMIN;
+	}
+	DCACSetFreq(freq);
+	freqOld = freq;
 }
 
 
@@ -223,9 +258,18 @@ int main(void) {
 			times++;
 			if(times > 200) {
 				times = 0;
-				#ifdef enableMPPT
-					MPPT();
-				#endif
+				cycles++;
+				if(cycles < ncycles) {
+					#ifdef enableMPPT
+						MPPT();
+					#endif
+				} else if(cycles < 2*ncycles) {
+					#ifdef enableFreq
+						MPPTFreq();
+					#endif
+				} else {
+					cycles = 0;
+				}
 			}
 			enablePrev = enableOut;
 			controlFlag = false;
