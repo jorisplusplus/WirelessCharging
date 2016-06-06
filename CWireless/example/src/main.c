@@ -20,7 +20,6 @@ static volatile bool enablePrev;
 static volatile int32_t vout;
 static volatile uint16_t time;
 static volatile uint16_t freq;
-static int32_t dutyInt;
 static volatile bool controlFlag;
 static volatile uint16_t times;
 static int32_t Vmeasure;
