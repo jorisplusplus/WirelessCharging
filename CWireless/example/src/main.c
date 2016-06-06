@@ -7,7 +7,7 @@
 #define LOAD_PIN 3
 #define intFactor 1
 #define MPPTFactor 10
-#define VMAX 2000
+#define VMAX 4800
 
 #define enableMPPT
 #define enableLoad
