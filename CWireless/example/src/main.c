@@ -11,6 +11,7 @@
 #define FMAX 1800
 #define FMIN 400
 #define ncycles 1000
+#define VLimit 3000
 
 #define enableMPPT
 #define enableLoad
@@ -59,6 +60,7 @@ void DCACControl(void) {
 void DCDCControl(void) {
 	if(vout > 4800) vout = 4800; //Limit duty cycle
 	if(vout < 0) vout = 0; //Minimal duty cycle
+	if(readADC(VOUT_PIN) > VLimit) vout = vout - 10;
 	Chip_PWM_SetMatch(LPC_PWM1, 1, vout);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 }
@@ -204,7 +206,7 @@ int main(void) {
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
 	LPC_IOCON->PINSEL[1] |= (1 << 20);
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
-
+	LPC_IOCON->PINMODE[4] |= (3 << 26);
 	LPC_SYSCTL->PCONP |= (1 << 17); //Enable clock
 	LPC_SYSCTL->PCLKSEL[1] |= (1 << 30); //PCLKMPWM = CCLK
 
@@ -225,6 +227,8 @@ int main(void) {
 
 	Chip_PWM_Enable(LPC_PWM1);
 	Chip_PWM_Reset(LPC_PWM1);
+
+	Chip_GPIO_Init(LPC_GPIO);
 
 	LPC_MCPWM->CON_SET |= (1 <<3);
 	DCACSetFreq(600);
@@ -248,13 +252,21 @@ int main(void) {
 	vout = 0;
 	while (1) {
 		if(controlFlag) {
-			#ifndef enableLoad
-				enableOut = (readADC(LOAD_PIN) > 2000);
+			bool emergency = Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			if(emergency) {
+				enableOut = false;
+				vout = 0;
+				DEBUGOUT("Emergency!!\n");
+			} else {
+			#ifdef enableLoad
+				enableOut = !Chip_GPIO_GetPinState(LPC_GPIO,0,28);
 			#else
 				enableOut = true;
 			#endif
-			DCACControl();
+			}
+			Board_LED_Set(0, enableOut);
 			DCDCControl();
+			DCACControl();
 			times++;
 			if(times > 200) {
 				times = 0;
@@ -271,8 +283,12 @@ int main(void) {
 					cycles = 0;
 				}
 			}
+			if(enablePrev != enableOut) {
+				DEBUGOUT("TOGGLING\n");
+			}
 			enablePrev = enableOut;
 			controlFlag = false;
+			if(emergency) return;
 		}
 	}
 }
