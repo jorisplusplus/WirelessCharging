@@ -284,7 +284,7 @@ int main(void) {
 				}
 			}
 			if(enablePrev != enableOut) {
-				DEBUGOUT("TOGGLING\n");
+				DEBUGOUT("TOGGLING %d\n",enableOut);
 			}
 			enablePrev = enableOut;
 			controlFlag = false;
