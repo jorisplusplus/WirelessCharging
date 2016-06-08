@@ -288,7 +288,7 @@ int main(void) {
 			}
 			enablePrev = enableOut;
 			controlFlag = false;
-			if(emergency) return;
+			if(emergency) return 0;
 		}
 	}
 }
