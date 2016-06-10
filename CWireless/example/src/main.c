@@ -1,8 +1,8 @@
 #include "board.h"
 
 #define TIME_INTERVAL   (1)
-#define VIN_PIN 0
-#define VOUT_PIN 1
+#define VIN_PIN 1
+#define VOUT_PIN 0
 #define CURRENT_PIN 2
 #define LOAD_PIN 3
 #define intFactor 1
@@ -13,9 +13,9 @@
 #define ncycles 1000
 #define VLimit 3000
 
-#define enableMPPT
-#define enableLoad
-#define enableFreq
+//#define enableMPPT
+//#define enableLoad
+//#define enableFreq
 
 
 static volatile bool On;
@@ -249,7 +249,7 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	vout = 0;
+	vout = 100;
 	while (1) {
 		if(controlFlag) {
 			bool emergency = Chip_GPIO_GetPinState(LPC_GPIO,2,13);
