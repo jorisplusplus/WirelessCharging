@@ -6,19 +6,19 @@
 #define CURRENT_PIN 2
 #define LOAD_PIN 3
 #define intFactor 1
-#define MPPTFactor 10
+#define MPPTFactor 50
 #define VMAX 4800
 #define FMAX 1800
 #define FMIN 400
 #define ncycles 1000
-#define VLimit 3000
+#define VLimit 3100
 
-//#define enableMPPT
+#define enableMPPT
 //#define enableLoad
 //#define enableFreq
 
-
 static volatile bool On;
+static volatile bool over;
 static ADC_CLOCK_SETUP_T ADCSetup;
 static volatile bool enableOut;
 static volatile bool enablePrev;
@@ -36,13 +36,35 @@ static uint16_t cycles;
 static uint16_t readADC(uint8_t id)
 {
 	uint16_t dataADC;
+	uint16_t first;
 	Chip_ADC_EnableChannel(LPC_ADC, id, ENABLE);
     Chip_ADC_SetStartMode(LPC_ADC, ADC_START_NOW, ADC_TRIGGERMODE_RISING);
 
 	/* Waiting for A/D conversion complete */
 	while (Chip_ADC_ReadStatus(LPC_ADC, id, ADC_DR_DONE_STAT) != SET) {}
 	/* Read ADC value */
+	Chip_ADC_ReadValue(LPC_ADC, id, &first);
+
+	Chip_ADC_SetStartMode(LPC_ADC, ADC_START_NOW, ADC_TRIGGERMODE_RISING);
+
+		/* Waiting for A/D conversion complete */
+	while (Chip_ADC_ReadStatus(LPC_ADC, id, ADC_DR_DONE_STAT) != SET) {}
+		/* Read ADC value */
 	Chip_ADC_ReadValue(LPC_ADC, id, &dataADC);
+
+	int32_t diff = first - dataADC;
+	if(diff < 0 ) diff = -diff;
+	while(diff > 200) {
+		first = dataADC;
+		Chip_ADC_SetStartMode(LPC_ADC, ADC_START_NOW, ADC_TRIGGERMODE_RISING);
+
+				/* Waiting for A/D conversion complete */
+		while (Chip_ADC_ReadStatus(LPC_ADC, id, ADC_DR_DONE_STAT) != SET) {}
+				/* Read ADC value */
+		Chip_ADC_ReadValue(LPC_ADC, id, &dataADC);
+		diff = first - dataADC;
+		if(diff < 0 ) diff = -diff;
+	}
 	Chip_ADC_EnableChannel(LPC_ADC, id, DISABLE);
 	return dataADC;
 }
@@ -58,11 +80,26 @@ void DCACControl(void) {
 }
 
 void DCDCControl(void) {
+	uint16_t voltage = readADC(VOUT_PIN);
+	if(voltage > VLimit) {
+		DEBUGOUT("WOOP\n");
+		if(over) {
+			vout = vout - 10;
+			DEBUGOUT("Overvoltage %d\n",voltage);
+		} else {
+			over = true;
+		}
+
+	} else {
+		over = false;
+	}
 	if(vout > 4800) vout = 4800; //Limit duty cycle
 	if(vout < 0) vout = 0; //Minimal duty cycle
-	if(readADC(VOUT_PIN) > VLimit) vout = vout - 10;
+
 	Chip_PWM_SetMatch(LPC_PWM1, 1, vout);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
+	Chip_PWM_SetMatch(LPC_PWM1, 2, vout);
+	Chip_PWM_LatchEnable(LPC_PWM1, 2, PWM_OUT_ENABLED);
 }
 
 
@@ -95,6 +132,9 @@ void MPPT(void) { //PUT MPPT here
 		} else { //Increased the voltage
 			vout = vout - MPPTFactor;
 		}
+	}
+	if(Vmeasure < 50) {
+		vout = 0;
 	}
 	if(vout > VMAX) {
 		vout = VMAX;
@@ -201,14 +241,21 @@ int main(void) {
 	LPC_IOCON->PINSEL[4] |= 0x00000555; //Change this after you know which pwm outputs are needed.
 	LPC_IOCON->PINMODE[3] |= (3 << 6);
 	LPC_IOCON->PINMODE[3] |= (3 << 12);
+
 	LPC_IOCON->PINSEL[1] |= (1 << 14);
 	LPC_IOCON->PINSEL[1] |= (1 << 16);
 	LPC_IOCON->PINSEL[1] |= (1 << 18);
 	LPC_IOCON->PINSEL[1] |= (1 << 20);
+	LPC_IOCON->PINMODE[1] |= (2 << 14);
+	LPC_IOCON->PINMODE[1] |= (2 << 16);
+	LPC_IOCON->PINMODE[1] |= (2 << 18);
+	LPC_IOCON->PINMODE[1] |= (2 << 20);
+
 	LPC_SYSCTL->PCLKSEL[0] |= (1 << 12); //PCLK_PWM1 = CCLK
 	LPC_IOCON->PINMODE[4] |= (3 << 26);
 	LPC_SYSCTL->PCONP |= (1 << 17); //Enable clock
 	LPC_SYSCTL->PCLKSEL[1] |= (1 << 30); //PCLKMPWM = CCLK
+	LPC_SYSCTL->PCLKSEL[0] |= (1 << 24);
 
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
@@ -249,14 +296,13 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	vout = 100;
+	vout = 0;
 	while (1) {
 		if(controlFlag) {
 			bool emergency = Chip_GPIO_GetPinState(LPC_GPIO,2,13);
 			if(emergency) {
 				enableOut = false;
 				vout = 0;
-				DEBUGOUT("Emergency!!\n");
 			} else {
 			#ifdef enableLoad
 				enableOut = !Chip_GPIO_GetPinState(LPC_GPIO,0,28);
@@ -269,6 +315,7 @@ int main(void) {
 			DCACControl();
 			times++;
 			if(times > 200) {
+				DEBUGOUT("%d %d %d %d\n",readADC(VIN_PIN), readADC(VOUT_PIN), readADC(CURRENT_PIN), vout);
 				times = 0;
 				cycles++;
 				if(cycles < ncycles) {
