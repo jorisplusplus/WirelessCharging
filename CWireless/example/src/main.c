@@ -12,6 +12,7 @@
 #define FMIN 400
 #define ncycles 1000
 #define VLimit 3100
+#define delayFactor 200
 
 #define enableMPPT
 //#define enableLoad
@@ -30,6 +31,8 @@ static volatile bool controlFlag;
 static volatile uint16_t times;
 static int32_t Vmeasure;
 static int32_t Imeasure;
+static int32_t Vold;
+static int32_t Iold;
 static int16_t voutOld;
 static uint16_t cycles;
 
@@ -114,12 +117,8 @@ void DCACSetFreq(uint16_t freq) {
 	LPC_MCPWM->MAT[0] = (freq>>1)-12;
 }
 
-void MPPT(void) { //PUT MPPT here
-	int32_t Vold = Vmeasure;
-	int32_t Iold = Imeasure;
-	Vmeasure = readADC(VIN_PIN);
-	Imeasure = readADC(CURRENT_PIN);
-	int32_t P = Vmeasure*Imeasure - Vold*Iold;
+void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
+	int32_t P = Vmeas*Imeas - Vold*Iold;
 	if(P >= 0) { //Power has increased;
 		if(voutOld > vout) { //Decreased the voltage
 			vout = vout - MPPTFactor;
@@ -143,14 +142,12 @@ void MPPT(void) { //PUT MPPT here
 		vout = 0;
 	}
 	voutOld = vout;
+	Vold = Vmeasure;
+	Iold = Imeasure;
 }
 
-void MPPTFreq(void) { //PUT MPPT here
-	int32_t Vold = Vmeasure;
-	int32_t Iold = Imeasure;
-	Vmeasure = readADC(VIN_PIN);
-	Imeasure = readADC(CURRENT_PIN);
-	int32_t P = Vmeasure*Imeasure - Vold*Iold;
+void MPPTFreq(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
+	int32_t P = Vmeas*Imeas - Vold*Iold;
 	if(P >= 0) { //Power has increased;
 		if(freqOld > freq) { //Decreased the voltage
 			freq = freq - 1;
@@ -172,6 +169,8 @@ void MPPTFreq(void) { //PUT MPPT here
 	}
 	DCACSetFreq(freq);
 	freqOld = freq;
+	Vold = Vmeasure;
+	Iold = Imeasure;
 }
 
 
@@ -313,19 +312,25 @@ int main(void) {
 			Board_LED_Set(0, enableOut);
 			DCDCControl();
 			DCACControl();
+			Vmeasure += readADC(VIN_PIN);
+			Imeasure += readADC(CURRENT_PIN);
 			times++;
-			if(times > 200) {
+			if(times >= delayFactor) {
 				DEBUGOUT("%d %d %d %d\n",readADC(VIN_PIN), readADC(VOUT_PIN), readADC(CURRENT_PIN), vout);
 				times = 0;
 				cycles++;
 				if(cycles < ncycles) {
 					#ifdef enableMPPT
-						MPPT();
+						MPPT(Vmeasure/delayFactor, Imeasure/delayFactor);
 					#endif
+					Vmeasure = 0;
+					Imeasure = 0;
 				} else if(cycles < 2*ncycles) {
 					#ifdef enableFreq
-						MPPTFreq();
+						MPPTFreq(Vmeasure/delayFactor, Imeasure/delayFactor);
 					#endif
+					Vmeasure = 0;
+					Imeasure = 0;
 				} else {
 					cycles = 0;
 				}
