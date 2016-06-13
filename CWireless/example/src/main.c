@@ -119,6 +119,7 @@ void DCACSetFreq(uint16_t freq) {
 
 void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	int32_t P = Vmeas*Imeas - Vold*Iold;
+	DEBUGOUT("MPPT: %d %d old %d %d", Vmeas, Imeas, Vold, Iold);
 	if(P >= 0) { //Power has increased;
 		if(voutOld > vout) { //Decreased the voltage
 			vout = vout - MPPTFactor;
