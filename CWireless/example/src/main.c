@@ -132,7 +132,7 @@ void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 			vout = vout - MPPTFactor;
 		}
 	}
-	if(Vmeasure < 50) {
+	if(Vmeas < 50) {
 		vout = 0;
 	}
 	if(vout > VMAX) {
