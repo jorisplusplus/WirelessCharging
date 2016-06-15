@@ -326,12 +326,12 @@ int main(void) {
 					#endif
 					Vmeasure = 0;
 					Imeasure = 0;
-				} else if(cycles < 2*ncycles) {
-					#ifdef enableFreq
-						MPPTFreq(Vmeasure/delayFactor, Imeasure/delayFactor);
-					#endif
-					Vmeasure = 0;
-					Imeasure = 0;
+				//} else if(cycles < 2*ncycles) {
+				//	#ifdef enableFreq
+				//		MPPTFreq(Vmeasure/delayFactor, Imeasure/delayFactor);
+				//	#endif
+				//	Vmeasure = 0;
+				//	Imeasure = 0;
 				} else {
 					cycles = 0;
 				}
