@@ -7,7 +7,7 @@
 #define LOAD_PIN 3
 #define intFactor 1
 #define MPPTFactor 50
-#define VMAX 4800
+#define VMAX 3200
 #define FMAX 1800
 #define FMIN 400
 #define ncycles 1000
@@ -96,7 +96,7 @@ void DCDCControl(void) {
 	} else {
 		over = false;
 	}
-	if(vout > 4800) vout = 4800; //Limit duty cycle
+	if(vout > VMAX) vout = VMAX; //Limit duty cycle
 	if(vout < 0) vout = 0; //Minimal duty cycle
 
 	Chip_PWM_SetMatch(LPC_PWM1, 1, vout);
@@ -259,7 +259,7 @@ int main(void) {
 
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
-	Chip_PWM_SetMatch(LPC_PWM1, 0, 6000);
+	Chip_PWM_SetMatch(LPC_PWM1, 0, 4000);
 	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
 	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
 
