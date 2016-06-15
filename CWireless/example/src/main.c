@@ -170,8 +170,8 @@ void MPPTFreq(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	}
 	DCACSetFreq(freq);
 	freqOld = freq;
-	Vold = Vmeasure;
-	Iold = Imeasure;
+	Vold = Vmeas;
+	Iold = Imeas;
 }
 
 
