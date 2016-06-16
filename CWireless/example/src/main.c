@@ -15,7 +15,7 @@
 #define delayFactor 200
 
 #define enableMPPT
-//#define enableLoad
+#define enableLoad
 //#define enableFreq
 
 static volatile bool On;
@@ -305,7 +305,7 @@ int main(void) {
 				vout = 0;
 			} else {
 			#ifdef enableLoad
-				enableOut = !Chip_GPIO_GetPinState(LPC_GPIO,0,28);
+				enableOut = Chip_GPIO_GetPinState(LPC_GPIO,0,28);
 			#else
 				enableOut = true;
 			#endif
@@ -316,7 +316,7 @@ int main(void) {
 			Vmeasure += readADC(VIN_PIN);
 			Imeasure += readADC(CURRENT_PIN);
 			times++;
-			if(times >= delayFactor) {
+			if(times >= delayFactor && enableOut) {
 				DEBUGOUT("%d %d %d %d\n",readADC(VIN_PIN), readADC(VOUT_PIN), readADC(CURRENT_PIN), vout);
 				times = 0;
 				cycles++;
