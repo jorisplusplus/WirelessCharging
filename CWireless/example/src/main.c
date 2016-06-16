@@ -7,14 +7,14 @@
 #define LOAD_PIN 3
 #define intFactor 1
 #define MPPTFactor 50
-#define VMAX 3200
+#define VMAX 2560
 #define FMAX 1800
 #define FMIN 400
 #define ncycles 1000
 #define VLimit 3100
 #define delayFactor 200
 
-#define enableMPPT
+//#define enableMPPT
 #define enableLoad
 //#define enableFreq
 
@@ -259,7 +259,7 @@ int main(void) {
 
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
-	Chip_PWM_SetMatch(LPC_PWM1, 0, 4000);
+	Chip_PWM_SetMatch(LPC_PWM1, 0, 3000);
 	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
 	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
 
@@ -278,11 +278,11 @@ int main(void) {
 	Chip_GPIO_Init(LPC_GPIO);
 
 	LPC_MCPWM->CON_SET |= (1 <<3);
-	DCACSetFreq(600);
+	DCACSetFreq(1074);
 	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
-	freq = 800;
+	freq = 1074;
 	NVIC_EnableIRQ(RITIMER_IRQn);
 	LPC_MCPWM->CON_SET |= 1;
 
@@ -299,7 +299,13 @@ int main(void) {
 	vout = 0;
 	while (1) {
 		if(controlFlag) {
-			bool emergency = Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			bool emergency = !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency |= !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency |= !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency |= !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency |= !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency |= !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
+			emergency = !emergency;
 			if(emergency) {
 				enableOut = false;
 				vout = 0;
