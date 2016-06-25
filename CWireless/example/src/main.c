@@ -254,9 +254,10 @@ int main(void) {
 	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
+	LPC_MCPWM->CON_SET |= 1;
 	freq = 1074;
 	NVIC_EnableIRQ(RITIMER_IRQn);
-	LPC_MCPWM->CON_SET |= 1;
+
 
 
 
