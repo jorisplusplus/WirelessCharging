@@ -83,9 +83,9 @@ void DCACControl(void) {
 }
 
 void DCDCControl(void) {
+	if(!enableOut) vout = 0;
 	uint16_t voltage = readADC(VOUT_PIN);
 	if(voltage > VLimit) {
-		DEBUGOUT("WOOP\n");
 		if(over) {
 			vout = vout - 10;
 			DEBUGOUT("Overvoltage %d\n",voltage);
@@ -148,34 +148,6 @@ void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	Vold = Vmeas;
 	Iold = Imeas;
 }
-
-void MPPTFreq(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
-	int32_t P = Vmeas*Imeas - Vold*Iold;
-	if(P >= 0) { //Power has increased;
-		if(freqOld > freq) { //Decreased the voltage
-			freq = freq - 1;
-		} else { //Increased the voltage
-			freq = freq + 1;
-		}
-	} else {	//Power decreased
-		if(freqOld > freq) { //Decreased the voltage
-			freq = freq + 1;
-		} else { //Increased the voltage
-			freq = freq - 1;
-		}
-	}
-	if(freq > FMAX) {
-		freq = FMAX;
-	}
-	if(freq < FMIN) {
-		freq = FMIN;
-	}
-	DCACSetFreq(freq);
-	freqOld = freq;
-	Vold = Vmeas;
-	Iold = Imeas;
-}
-
 
 void RIT_IRQHandler(void) {
 	/* Clearn interrupt */
@@ -287,9 +259,10 @@ int main(void) {
 	LPC_MCPWM->DT = 12;
 	LPC_MCPWM->INTEN_SET |= 1;
 	LPC_MCPWM->INTF_SET |= 1;
+	LPC_MCPWM->CON_SET |= 1;
 	freq = 1074;
 	NVIC_EnableIRQ(RITIMER_IRQn);
-	LPC_MCPWM->CON_SET |= 1;
+
 
 
 
@@ -337,12 +310,6 @@ int main(void) {
 					#endif
 					Vmeasure = 0;
 					Imeasure = 0;
-				//} else if(cycles < 2*ncycles) {
-				//	#ifdef enableFreq
-				//		MPPTFreq(Vmeasure/delayFactor, Imeasure/delayFactor);
-				//	#endif
-				//	Vmeasure = 0;
-				//	Imeasure = 0;
 				} else {
 					cycles = 0;
 				}
