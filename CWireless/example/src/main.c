@@ -34,6 +34,7 @@ static int32_t Imeasure;
 static int32_t Vold;
 static int32_t Iold;
 static int16_t voutOld;
+static int16_t voutOldest;
 static uint16_t cycles;
 
 static uint16_t readADC(uint8_t id)
@@ -122,15 +123,15 @@ void DCACSetFreq(uint16_t freq) {
 void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	int32_t P = Vmeas*Imeas - Vold*Iold;
 	DEBUGOUT("MPPT: %d %d old %d %d P %d Dold %d\n", Vmeas, Imeas, Vold, Iold, P, voutOld);
-	voutOld = vout;
+
 	if(P >= 0) { //Power has increased;
-		if(voutOld > vout) { //Decreased the voltage
+		if(voutOldest > voutOld) { //Decreased the voltage
 			vout = vout - MPPTFactor;
 		} else { //Increased the voltage
 			vout = vout + MPPTFactor;
 		}
 	} else {	//Power decreased
-		if(voutOld > vout) { //Decreased the voltage
+		if(voutOldest > voutOld) { //Decreased the voltage
 			vout = vout + MPPTFactor;
 		} else { //Increased the voltage
 			vout = vout - MPPTFactor;
@@ -138,6 +139,8 @@ void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	}
 	if(Vmeas < 50) {
 		vout = 0;
+		voutOldest = 0;
+		voutOld = 0;
 	}
 	if(vout > VMAX) {
 		vout = VMAX;
@@ -147,6 +150,8 @@ void MPPT(int32_t Vmeas, int32_t Imeas) { //PUT MPPT here
 	}
 	Vold = Vmeas;
 	Iold = Imeas;
+	voutOldest = voutOld;
+	voutOld = vout;
 }
 
 void RIT_IRQHandler(void) {
@@ -271,7 +276,9 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	vout = 300;
+	vout = 0;
+	voutOldest = 0;
+	voutOld = 0;
 	while (1) {
 		if(controlFlag) {
 			bool emergency = !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
