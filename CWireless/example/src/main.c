@@ -7,15 +7,15 @@
 #define LOAD_PIN 3
 #define intFactor 1
 #define MPPTFactor 50
-#define VMAX 2560
+#define VMAX 1500
 #define FMAX 1800
 #define FMIN 400
 #define ncycles 1000
-#define VLimit 3100
+#define VLimit 3300
 #define delayFactor 200
 
 //#define enableMPPT
-#define enableLoad
+//#define enableLoad
 //#define enableFreq
 
 static volatile bool On;
@@ -103,6 +103,8 @@ void DCDCControl(void) {
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 	Chip_PWM_SetMatch(LPC_PWM1, 2, vout);
 	Chip_PWM_LatchEnable(LPC_PWM1, 2, PWM_OUT_ENABLED);
+	Chip_PWM_SetMatch(LPC_PWM1, 3, vout);
+	Chip_PWM_LatchEnable(LPC_PWM1, 3, PWM_OUT_ENABLED);
 }
 
 
@@ -232,17 +234,20 @@ int main(void) {
 	Chip_PWM_Init(LPC_PWM1);
 	LPC_PWM1->PR = 0;
 	Chip_PWM_SetMatch(LPC_PWM1, 0, 3000);
-	Chip_PWM_SetMatch(LPC_PWM1, 1, 0);
-	Chip_PWM_SetMatch(LPC_PWM1, 2, 200);
+	Chip_PWM_SetMatch(LPC_PWM1, 1, 1500);
+	Chip_PWM_SetMatch(LPC_PWM1, 2, 1500);
+	Chip_PWM_SetMatch(LPC_PWM1, 3, 1500);
 
 	Chip_PWM_ResetOnMatchEnable(LPC_PWM1, 0);
 	Chip_PWM_SetCountClockSrc(LPC_PWM1, PWM_CAPSRC_RISING_PCLK, 0);
 	Chip_PWM_SetControlMode(LPC_PWM1, 0, PWM_SINGLE_EDGE_CONTROL_MODE, PWM_OUT_ENABLED);
 	Chip_PWM_SetControlMode(LPC_PWM1, 1, PWM_SINGLE_EDGE_CONTROL_MODE, PWM_OUT_ENABLED);
+	Chip_PWM_SetControlMode(LPC_PWM1, 2, PWM_SINGLE_EDGE_CONTROL_MODE, PWM_OUT_ENABLED);
 
 	Chip_PWM_LatchEnable(LPC_PWM1, 0, PWM_OUT_ENABLED);
 	Chip_PWM_LatchEnable(LPC_PWM1, 1, PWM_OUT_ENABLED);
 	Chip_PWM_LatchEnable(LPC_PWM1, 2, PWM_OUT_ENABLED);
+	Chip_PWM_LatchEnable(LPC_PWM1, 3, PWM_OUT_ENABLED);
 
 	Chip_PWM_Enable(LPC_PWM1);
 	Chip_PWM_Reset(LPC_PWM1);
@@ -266,7 +271,7 @@ int main(void) {
 
 
 	/* LED is toggled in interrupt handler */
-	vout = 0;
+	vout = 300;
 	while (1) {
 		if(controlFlag) {
 			bool emergency = !Chip_GPIO_GetPinState(LPC_GPIO,2,13);
