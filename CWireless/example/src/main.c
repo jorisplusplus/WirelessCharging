@@ -258,9 +258,6 @@ int main(void) {
 	freq = 1074;
 	NVIC_EnableIRQ(RITIMER_IRQn);
 
-
-
-
 	Chip_ADC_Init(LPC_ADC, &ADCSetup);
 	Chip_ADC_SetBurstCmd(LPC_ADC, DISABLE);
 
